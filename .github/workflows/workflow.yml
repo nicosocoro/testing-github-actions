@@ -7,8 +7,8 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 'sw-devprocess-web-test'
-  AZURE_WEBAPP_SOLUTION: 'TestingGitHubActions/TestingGitHubActions.sln'     # set this to your application's name
-  AZURE_WEBAPP_PROJECT: 'TestingGitHubActions/TestingGitHubActions.Web.csproj'
+  AZURE_WEBAPP_SOLUTION: 'code/TestingGitHubActions.sln'     # set this to your application's name
+  AZURE_WEBAPP_PROJECT: 'code/TestingGitHubActions.Web/TestingGitHubActions.Web.csproj'
   AZURE_WEBAPP_PACKAGE_PATH: 'published'      # set this to the path to your web app project, defaults to the repository root
 
 jobs:
