@@ -44,24 +44,49 @@ jobs:
           # path: ./obj/Release/Package/PackageTmp
           # path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ 
 
-  FTP-Deploy-Action:
-    name: FTP-Deploy-Action
-    needs: Build
-    runs-on: ubuntu-latest
-    steps:
+  deploy:
+      name: Deploy App - FTP
+      runs-on: ubuntu-latest
+      needs: Build
+      steps:
+        - name: Download bundle
+          uses: actions/download-artifact@master
+          with:
+            name: ${{ env.PACKAGE_NAME }} # Download artifact named `my_artifact_name` (matches build step: Upload bundle)
+            path: dist # Optional, downloads to current working directory under folder {artifact_name} if not specified
 
-      # Add step to download artifacts
-      - name: Download artifacts from Build
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{ env.PACKAGE_NAME }}
+        - name: Debug Files
+          run: dir dist
 
-      - name: FTP-Deploy-Action
-        uses: SamKirkland/FTP-Deploy-Action@3.1.1
-        with:
-          # local-dir: "code/TestingGitHubActions.Web/"
-          local-dir: /home/runner/work/testing-github-actions/testing-github-actions
-          # local-dir: D:/a/testing-github-actions/testing-github-actions/code/TestingGitHubActions.Web/obj/Release/Package/PackageTmp
-          ftp-server: "${{ secrets.FTP_SERVER }}/site/wwwroot/"
-          ftp-username: ${{ secrets.FTP_USER_NAME }}
-          ftp-password: ${{ secrets.FTP_PASSWORD }}
+        - name: Upload to FTP
+          uses: isthatcentered/dist-to-ftp@master
+          with:
+            user: ${{ secrets.FTP_USER_NAME }} # Ftp user Ex:
+            password: ${{ secrets.FTP_PASSWORD }} # Ftp password Ex:
+            host: ${{ secrets.FTP_HOST }} # Ftp host Ex:
+            # port: ${{ secrets.FTP_PORT }} # (optional) FTP port, defaults to 21
+            path: dist # Folder to deploy Ex: apps/frontend/dist or dist
+            into: "/site/wwwroot/" # Where to place the files in your ftp
+            cleanupExisting: true # (Optional), Remove already existing files inside FTP destination folder (`into` parameter)
+
+  # FTP-Deploy-Action:
+  #   name: FTP-Deploy-Action
+  #   needs: Build
+  #   runs-on: ubuntu-latest
+  #   steps:
+
+  #     # Add step to download artifacts
+  #     - name: Download artifacts from Build
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: ${{ env.PACKAGE_NAME }}
+
+  #     - name: FTP-Deploy-Action
+  #       uses: SamKirkland/FTP-Deploy-Action@3.1.1
+  #       with:
+  #         # local-dir: "code/TestingGitHubActions.Web/"
+  #         local-dir: /home/runner/work/testing-github-actions/testing-github-actions
+  #         # local-dir: D:/a/testing-github-actions/testing-github-actions/code/TestingGitHubActions.Web/obj/Release/Package/PackageTmp
+  #         ftp-server: "${{ secrets.FTP_SERVER }}/site/wwwroot/"
+  #         ftp-username: ${{ secrets.FTP_USER_NAME }}
+  #         ftp-password: ${{ secrets.FTP_PASSWORD }}
