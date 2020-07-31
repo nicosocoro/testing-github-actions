@@ -41,8 +41,6 @@ jobs:
         with:
           name: ${{ env.PACKAGE_NAME }}
           path: D:/a/testing-github-actions/testing-github-actions/code/TestingGitHubActions.Web/obj/Release/Package/PackageTmp
-          # path: ./obj/Release/Package/PackageTmp
-          # path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ 
 
   deploy:
       name: Deploy App - FTP

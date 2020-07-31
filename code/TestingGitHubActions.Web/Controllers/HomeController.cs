@@ -20,9 +20,9 @@ namespace TestingGitHubActions.Web.Controllers
             return View();
         }
 
-        public ActionResult Contact()
+        public ActionResult Test()
         {
-            ViewBag.Message = "Your contact page.";
+            ViewBag.Message = "Your test page.";
 
             return View();
         }
