@@ -5,42 +5,74 @@ on:
 name: Publish Website
 
 env:
-  AZURE_WEBAPP_SOLUTION: 'code/TestingGitHubActions.sln'     # set this to your application's name
+  COMPILED_PACKAGE_NAME: 'compiled_package'
+  AZURE_WEBAPP_SOLUTION: "code/TestingGitHubActions.sln" # set this to your application's name
   # AZURE_WEBAPP_NAME: 'sw-devprocess-web-test'    # set this to your application's name
-  # AZURE_WEBAPP_PACKAGE_PATH: 'code/DevProcess.Web/DevProcess.Web.csproj'          # set this to the dot net version to use
+  AZURE_WEBAPP_PACKAGE_PATH: 'publish/'          # set this to the dot net version to use
 
 jobs:
+  Build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.2
+
+      - name: Restore NuGet packages
+        run: nuget restore ${{ env.AZURE_WEBAPP_SOLUTION }}
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.0
+        with:
+          vs-version: "[16.4,16.9)"
+
+        #  vs-version: "[16.4,16.5]"  #Version of Visual Studio to search; defaults to latest if not specified
+      # - name: Run MSBuild
+      #   run: msbuild ${{ env.AZURE_WEBAPP_SOLUTION }}
+
+      - name: Run MSBuild
+        run: msbuild ${{ env.AZURE_WEBAPP_PROJECT }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /t:WebPublish /p:WebPublishMethod=MSDeploy /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
+        # run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
+#         # run: msbuild ${{ env.AZURE_WEBAPP_PROJECT }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /t:WebPublish /p:WebPublishMethod=MSDeploy /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
+
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ COMPILED_PACKAGE_NAME }}
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
   FTP-Deploy-Action:
     name: FTP-Deploy-Action
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2.1.0
-      with:
-        fetch-depth: 2
+      # - uses: actions/checkout@v2.1.0
+      #   with:
+      #     fetch-depth: 2
 
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.2
-    
-    - name: Restore NuGet packages
-      run: nuget restore ${{ env.AZURE_WEBAPP_SOLUTION }}
-  
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.0
-      with:
-        vs-version: "[16.4,16.9)"
-      #  vs-version: "[16.4,16.5]"  #Version of Visual Studio to search; defaults to latest if not specified
+      # - name: Setup NuGet
+      #   uses: NuGet/setup-nuget@v1.0.2
 
-    - name: Run MSBuild
-      run: msbuild ${{ env.AZURE_WEBAPP_SOLUTION }}
+      # - name: Restore NuGet packages
+      #   run: nuget restore ${{ env.AZURE_WEBAPP_SOLUTION }}
 
-    - name: FTP-Deploy-Action
-      uses: SamKirkland/FTP-Deploy-Action@3.1.1
-      with:
-        local-dir: 'code/TestingGitHubActions.Web/'
-        ftp-server: '${{ secrets.FTP_SERVER }}/site/wwwroot/'
-        ftp-username: ${{ secrets.FTP_USER_NAME }}
-        ftp-password: ${{ secrets.FTP_PASSWORD }}
+      # - name: Add msbuild to PATH
+      #   uses: microsoft/setup-msbuild@v1.0.0
+      #   with:
+      #     vs-version: "[16.4,16.9)"
 
+      #   #  vs-version: "[16.4,16.5]"  #Version of Visual Studio to search; defaults to latest if not specified
+      # - name: Run MSBuild
+      #   run: msbuild ${{ env.AZURE_WEBAPP_SOLUTION }}
+
+      - name: FTP-Deploy-Action
+        uses: SamKirkland/FTP-Deploy-Action@3.1.1
+        with:
+          local-dir: "code/TestingGitHubActions.Web/"
+          ftp-server: "${{ secrets.FTP_SERVER }}/site/wwwroot/"
+          ftp-username: ${{ secrets.FTP_USER_NAME }}
+          ftp-password: ${{ secrets.FTP_PASSWORD }}
 ## first
 # on:
 #   push:
@@ -71,16 +103,16 @@ jobs:
 # jobs:
 #   build-and-deploy:
 #     runs-on: windows-latest
-    
+
 #     steps:
 #     - uses: actions/checkout@v2
-    
+
 #     - name: Setup NuGet
 #       uses: NuGet/setup-nuget@v1.0.2
-    
+
 #     - name: Restore NuGet packages
 #       run: nuget restore ${{ env.AZURE_WEBAPP_SOLUTION }}
-  
+
 #     - name: Add msbuild to PATH
 #       uses: microsoft/setup-msbuild@v1.0.0
 #       with:
@@ -89,22 +121,16 @@ jobs:
 
 #     - name: Run MSBuild
 #       run: msbuild ${{ env.AZURE_WEBAPP_SOLUTION }}
-       
+
 #     - name: 'Run Azure webapp deploy action using publish profile credentials'
 #       uses: azure/webapps-deploy@v2
-#       with: 
+#       with:
 #         app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
 #         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # Define secret variable in repository settings as per action documentation
 #         package: 'code/'
 #          # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/DevProcess.Web/'
-  
 
-
-
-
-  # For more samples to get started with GitHub Action workflows to deploy to Azure, refer to https://github.com/Azure/actions-workflow-samples
-
-
+# For more samples to get started with GitHub Action workflows to deploy to Azure, refer to https://github.com/Azure/actions-workflow-samples
 
 # second version
 # name: Build and Deploy
@@ -126,15 +152,15 @@ jobs:
 #     runs-on: windows-latest
 #     steps:
 #     - uses: actions/checkout@v2
-    
+
 #     - name: Setup MSBuild path
 #       uses: microsoft/setup-msbuild@v1.0.1
 #       with:
 #         vs-version: "[16.4,16.9)"
-    
+
 #     - name: Setup NuGet
 #       uses: NuGet/setup-nuget@v1.0.2
-    
+
 #     - name: Restore NuGet packages
 #       run: nuget restore ${{ env.AZURE_WEBAPP_SOLUTION }}
 
@@ -145,7 +171,7 @@ jobs:
 #       id: publish_to_folder
 #       run: msbuild ${{ env.AZURE_WEBAPP_PROJECT }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /p:PackageAsSingleFile=false
 #         # run: msbuild ${{ env.AZURE_WEBAPP_PROJECT }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /t:WebPublish /p:WebPublishMethod=MSDeploy /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
-      
+
 #     - name: Deploy to Azure WebApp
 #       uses: azure/webapps-deploy@v1
 #       with:
@@ -158,8 +184,6 @@ jobs:
 #     #   with:
 #     #     name: ${{ env.AZURE_WEBAPP_NAME }}
 #     #     path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
-
 
 # first version
 # name: Build and Deploy
@@ -181,15 +205,15 @@ jobs:
 #     runs-on: windows-latest
 #     steps:
 #     - uses: actions/checkout@v2
-    
+
 #     - name: Setup MSBuild path
 #       uses: microsoft/setup-msbuild@v1.0.1
 #       with:
 #         vs-version: "[16.4,16.9)"
-    
+
 #     - name: Setup NuGet
 #       uses: NuGet/setup-nuget@v1.0.2
-    
+
 #     - name: Restore NuGet packages
 #       run: nuget restore ${{ env.AZURE_WEBAPP_SOLUTION }}
 
