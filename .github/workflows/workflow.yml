@@ -2,10 +2,11 @@ on:
   push:
     branches:
       - master
+
 name: Publish Website
 
 env:
-  PACKAGE_NAME: 'published_packageee'
+  PACKAGE_NAME: 'published_package'
   AZURE_WEBAPP_SOLUTION: "code/TestingGitHubActions.sln" # set this to your application's name
   AZURE_WEBAPP_PROJECT: 'code/TestingGitHubActions.Web/TestingGitHubActions.Web.csproj'
   # AZURE_WEBAPP_NAME: 'sw-devprocess-web-test'    # set this to your application's name
