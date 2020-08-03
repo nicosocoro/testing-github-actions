@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - master
+
 name: Publish Website
 
 env:
